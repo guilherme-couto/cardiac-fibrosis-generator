@@ -1,0 +1,39 @@
+# ==========================================
+# Compiled Binaries (MEX)
+# ==========================================
+# C++ source files (.cpp) will be tracked, but locally compiled binaries must be ignored.
+*.mex
+*.mexa64
+*.mexw64
+*.o
+*.obj
+
+# ==========================================
+# Framework Cache and Temporary I/O Buffers
+# ==========================================
+# Prevents Python/Octave bridge buffers from being tracked
+temp_*.mat
+*_temp.mat
+cached_meshes/
+
+# ==========================================
+# Generated Output Meshes
+# ==========================================
+# Avoid pushing massive generated point-clouds to the repository
+*.alg
+*.vtu
+*.meta
+
+# (Optional) If you have a specific folder for small sample inputs, un-ignore it:
+# !examples/sample_inputs/**/*.alg
+# !examples/sample_inputs/**/*.vtu
+
+# ==========================================
+# Other Files and Folders
+# ==========================================
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+octave-workspace
+examples/outputs/
