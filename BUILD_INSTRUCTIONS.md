@@ -81,10 +81,10 @@ If the project requires standard Octave toolboxes (e.g., `image` package) for ca
 
 **Installation:**
    Open Octave and run:
-    ```bash
-      pkg install -forge image
-      pkg load image
-    ```
+   ```bash
+   pkg install -forge image
+   pkg load image
+   ```
 
 **Note:** This requires Octave 8.4.0. Newer versions (10.x) may fail to compile due to GCC incompatibilities
 
