@@ -23,12 +23,17 @@ The framework relies on a hybrid Octave/Python architecture for high-performance
 The framework is operated via the universal entry point: `run_fibrosis_generator.m`.
 To test the installation, run the provided examples from the `examples/` directory:
 
-```matlab
-% Example 1: Generate analytical grids (2D/3D)
-octave-cli examples/run_ideal_meshes.m
+```bash
+cd examples
 
-% Example 2: Inject patterns into custom patient meshes
-octave-cli examples/run_custom_meshes.m
+% Example 1: Generate analytical grids (2D/3D)
+octave-cli run_ideal_meshes.m
+
+% Example 2: Patterns into custom patient meshes
+octave-cli run_custom_meshes.m
+
+% Example 3: Run the generator via Python (2D/3D/custom)
+python3 run_via_python.py
 ```
 
 ---
@@ -42,6 +47,30 @@ The algorithm places collagen elements based on a generated continuous noise fie
 Collagen elements that fall into the anatomical Gray Zone (in custom meshes) or Border Zone layers (in analytical meshes) are generated as a decaying byproduct and **do not** count towards the user-requested target density. 
 
 *Example: Requesting a density of `0.4` means exactly 40% of the Fibrotic Core will become collagen, regardless of how much collagen spills into the surrounding border zones.*
+
+---
+
+## Custom Mesh Requirements (.ALG & .VTU)
+
+When using the `CUSTOM` dimension mode, your patient-specific meshes must follow some formatting rules so the framework can correctly extract spatial coordinates, biological tensors, and anatomy.
+
+**Tissue Tagging Convention (Both Formats):**
+* `0` = Healthy Tissue
+* `1` = Fibrotic Core (Dense target)
+* `2` = Gray Zone / Border Zone (Decay target)
+
+### ALG Format (CSV-based Finite Volume)
+The framework utilizes a parser that targets specific columns (1-indexed) within the `.alg` file. Unused columns are safely ignored during generation but perfectly preserved in the final output.
+
+* **Columns 1, 2, 3:** X, Y, Z spatial coordinates of centroids.
+* **Column 7:** Tissue Tag (0, 1, or 2).
+* **Columns 9, 10, 11:** Longitudinal Fiber vector (fx, fy, fz).
+* **Columns 12, 13, 14 (3D Only):** Transverse Sheet vector (sx, sy, sz).
+* **Columns 15, 16, 17 (3D Only):** Sheet Normal vector (nx, ny, nz).
+* **Column 12 (for 2D) or 18 (for 3D):** Pre-calculated Gray Zone Laplacian weights [0.0 to 1.0].
+
+### VTU Format
+For `.vtu` grids, spatial centroids are extracted automatically via PyVista. However, the file **must** contain a `CellData` array named exactly `material` or `tecido` holding the integer tissue tags (0, 1, or 2).
 
 ---
 

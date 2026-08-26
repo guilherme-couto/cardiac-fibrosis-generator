@@ -5,10 +5,10 @@ clc;
 fprintf("=== Cardiac Fibrosis Framework Example: Custom Patient Meshes ===\n\n");
 
 % Configure these paths to point to your local patient datasets
-filepath_2D = '../patient_meshes/200um/outputs_2D_dx0.2/Patient_7/Patient_7_slice_6.vtu';
+filepath_2D = '../patient_meshes/200um/outputs_2D_dx0.2/Patient_7/Patient_7_slice_6.alg';
 filepath_3D = '../patient_meshes/200um/outputs_3D_dx0.2/Patient_7/Patient_7.alg';
 
-% --- SCENARIO 1: 2D Custom Mesh (VTU format) ---
+% --- SCENARIO 1: 2D Custom Mesh ---
 scn1.type = 'diffuse'; 
 scn1.dim_mode = 'CUSTOM'; 
 scn1.shape = 'custom'; 
@@ -18,7 +18,7 @@ scn1.domain = filepath_2D;
 scn1.core   = [];      
 scn1.desc   = 'Patient (2D Slice) - Diffuse';
 
-% --- SCENARIO 2: 3D Custom Mesh (ALG format) ---
+% --- SCENARIO 2: 3D Custom Mesh ---
 scn2.type = 'patchy'; 
 scn2.dim_mode = 'CUSTOM'; 
 scn2.shape = 'custom';   
@@ -36,7 +36,7 @@ save_figure = false;
 % Execution Loop
 for i = 1:length(test_scenarios)
     s = test_scenarios{i};
-    fname = sprintf('output_patient_scenario_%d', i);
+    fname = sprintf('output_custom_scenario_%d', i);
     
     fprintf('>>> Running Scenario %d: %s\n', i, s.desc);
     % Navigate back to root to call the generator

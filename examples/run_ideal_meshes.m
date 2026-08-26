@@ -12,7 +12,7 @@ scn1.angle = 60;
 scn1.density = 0.10;
 scn1.domain = [0.01, 2.0, 4.0];  % [dx, Lx, Ly]
 scn1.core   = [1.5, 3.0];        % [width, height]
-scn1.desc   = '2D Elliptical Domain (Interstitial)';
+scn1.desc   = '2D Elliptical Domain - Interstitial';
 
 % --- SCENARIO 2: 3D Compact Box ---
 scn2.type = 'compact';
@@ -25,13 +25,13 @@ scn2.core   = [1.5, 0.8, 0.3];       % [width, height, depth]
 scn2.desc   = '3D Structured Box (Compact)';
 
 test_scenarios = {scn1, scn2};
-seed = 42;
+seed = 2026;
 save_mesh = true;
 save_figure = true; % This triggers the Python visualizer
 
 for i = 1:length(test_scenarios)
     s = test_scenarios{i};
-    fname = sprintf('%s_%s_%s', s.type, s.shape, s.dim_mode);
+    fname = sprintf('output_ideal_scenario_%d', i);
     
     fprintf('>>> Running Scenario %d: %s\n', i, s.desc);
     cd('..');
