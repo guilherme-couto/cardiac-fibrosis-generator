@@ -50,7 +50,7 @@ Collagen elements that fall into the anatomical Gray Zone (in custom meshes) or 
 
 ---
 
-## Custom Mesh Requirements (.ALG & .VTU)
+## Custom Mesh Requirements (.ALG)
 
 When using the `CUSTOM` dimension mode, your patient-specific meshes must follow some formatting rules so the framework can correctly extract spatial coordinates, biological tensors, and anatomy.
 
@@ -58,6 +58,11 @@ When using the `CUSTOM` dimension mode, your patient-specific meshes must follow
 * `0` = Healthy Tissue
 * `1` = Fibrotic Core (Dense target)
 * `2` = Gray Zone / Border Zone (Decay target)
+
+### Output File Behavior
+When the framework finishes generating the fibrosis pattern, it injects the results back into a copy of your custom mesh. **The framework is additive and non-destructive.**
+
+* **For `.alg` files:** The original tissue tags (Column 7) and all biological vectors are preserved. The framework appends the boolean collagen presence (`1` for collagen, `0` for healthy) as a brand **new column at the end** of each data row.
 
 ### ALG Format (CSV-based Finite Volume)
 The framework utilizes a parser that targets specific columns (1-indexed) within the `.alg` file. Unused columns are safely ignored during generation but perfectly preserved in the final output.
@@ -68,9 +73,6 @@ The framework utilizes a parser that targets specific columns (1-indexed) within
 * **Columns 12, 13, 14 (3D Only):** Transverse Sheet vector (sx, sy, sz).
 * **Columns 15, 16, 17 (3D Only):** Sheet Normal vector (nx, ny, nz).
 * **Column 12 (for 2D) or 18 (for 3D):** Pre-calculated Gray Zone Laplacian weights [0.0 to 1.0].
-
-### VTU Format
-For `.vtu` grids, spatial centroids are extracted automatically via PyVista. However, the file **must** contain a `CellData` array named exactly `material` or `tecido` holding the integer tissue tags (0, 1, or 2).
 
 ---
 
@@ -83,6 +85,18 @@ Located in `modules/applyFibrosisThreshold.m`.
 You can alter how quickly the collagen presence decays outside the true core by changing the `gz_decay_mode`:
 * **`linear`**: Standard linear interpolation. Causes a rapid drop in density towards the healthy tissue.
 * **`power`**: Uses a fractional power equation ($T^{1-W^k}$). This shields the Gray Zone, preserving a higher density of collagen further away from the core before decaying. You can adjust the intensity via the `power_k` variable.
+
+---
+
+## Utility Scripts (`utils/`)
+
+The repository includes utility scripts to assist with pre-processing, post-processing, verification, and workspace maintenance:
+
+* **`compute_2d_laplacian.py`**: Solves a steady-state Laplacian PDE on 2D custom meshes to compute spatial transition weights for the Gray Zone before fibrosis generation.
+* **`check_mesh_tags.py`**: Generates a quick 2D scatter plot visualization of the tissue tags (`0: Healthy`, `1: Core`, `2: Gray Zone`) as a sanity check.
+* **`alg_to_vtu.py`**: Converts `.alg` meshes into `.vtu` files. Supports both fast point-cloud mapping (`point_data`) and full voxel reconstruction (`cell_data` via `--as-cells`), along with biological vectors and collagen presence.
+* **`clean_cache.py`**: Safely deletes the uncompressed binary mesh dumps stored in `cached_meshes/` to free up disk space.
+* **`plot_2d_custom_result.py`**: Generates a 2D scatter plot of the final fibrosis pattern in custom meshes, color-coded by collagen presence.
 
 ---
 

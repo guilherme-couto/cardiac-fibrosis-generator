@@ -27,15 +27,15 @@ function savePatternVisualisation(output_data, final_result, run_cfg)
     end
     title_str = sprintf('%s (%s) | Density: %.2f | Seed: %d', fibrosis_type, dim_tag, density, seed);
     
-    fprintf('  [i] Delegating %s visual render to Python Matplotlib...\n', dim_tag);
+    fprintf('      |-> Delegating %s visual render to Python Matplotlib\n', dim_tag);
     bridge_script = fullfile(pwd, 'helpers', 'save_fibrosis_image.py');
     cmd = sprintf("python3 '%s' '%s' '%s' '%s'", bridge_script, temp_mat_file, output_name, title_str);
     
     [status, cmd_output] = system(cmd);
     
     if status ~= 0
-        fprintf('  [x] Python plotting bridge failed:\n%s\n', cmd_output);
+        fprintf('      |-> [x] Python plotting failed:\n%s\n', cmd_output);
     else
-        fprintf('  [✓] Image generated.\n');
+        fprintf('      |-> [✓] Image generated.\n');
     end
 end

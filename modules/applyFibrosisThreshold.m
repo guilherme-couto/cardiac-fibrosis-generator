@@ -88,6 +88,7 @@ function result = applyFibrosisThreshold(noise_field, geometry, target_density, 
             layer_values = noise_field(mask_layer);
             if isempty(layer_values), continue; end
             
+            % Target density equation: rho_layer = rho_core * exp(-decay_factor * (layer / L))
             target_layer_density = target_density * exp(-decay_factor * (layer / L));
             layer_thresh = findThresholdForDensity(layer_values, target_layer_density, tol, max_iters);
             threshold_map(mask_layer) = layer_thresh;

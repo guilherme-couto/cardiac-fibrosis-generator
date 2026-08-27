@@ -33,10 +33,10 @@ function writeALGFromPatternData(pattern_data, filename)
 
     num_bz_layers = max(pattern_data.bz_layers(:)) + 1; 
 
-    fprintf('  [i] Exporting analytical array to ALG: %s.alg...\n', filename);
+    fprintf('      |-> Exporting analytical array to ALG\n');
     fid = fopen([filename, '.alg'], 'wt');
     if fid == -1
-        error('  [x] Could not create output file. Check directory permissions.'); 
+        error('      |-> [x] Could not create output file. Check directory permissions.'); 
     end
 
     % Z -> Y -> X ordered iteration
@@ -71,5 +71,5 @@ function writeALGFromPatternData(pattern_data, filename)
         end
     end
     fclose(fid);
-    fprintf('  [✓] ALG export successful.\n');
+    fprintf('      |-> [✓] ALG export successful. Saved to %s.alg.\n', filename);
 end

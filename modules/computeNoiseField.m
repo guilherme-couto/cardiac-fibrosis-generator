@@ -6,7 +6,7 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
 % to produce physiologically realistic textures.
 %
 % INPUTS:
-%   mesh   - Struct containing spatial coordinates (.mm_points) and tensors.
+%   mesh   - Struct containing spatial coordinates (.points) and tensors.
 %   params - Struct with procedural variables (fibreness, feature_size, etc.).
 %   seed   - Integer RNG seed for deterministic generation.
 %
@@ -17,7 +17,7 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
     % Check Dimensionality
     is3D = mesh.is3D;
 
-    % === COMMON PARAMETER EXTRACTION ===
+    % Common parameters for both 2D and 3D generation
     fibreness    = params.fibreness;
     patchiness   = params.patchiness;
     feature_size = params.feature_size;
@@ -41,24 +41,20 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
         end
     end
 
-    % =====================================================================
-    % BRANCH: 3D GENERATION (FLOW NOISE UPGRADE + COSINE VEINS)
-    % =====================================================================
+    % BRANCH: 3D GENERATION
     if is3D
-        % Extract 3D Specific Params
+        % Extract 3D specific params
         fibre_sep_y = params.fibre_sep_y;
         fibre_sep_z = params.fibre_sep_z;
         align_y     = params.alignment_y;
         align_z     = params.alignment_z;
-        phi         = params.phi;
-        theta       = params.theta;
 
-        % Handle Non-Fibrous Case
+        % Handle non-fibrous case
         if isnan(fibreness)
             fibreness = 0; fibre_sep_y = 1; fibre_sep_z = 1;
         end
 
-        points = mesh.mm_points; % Nx3 Matrix
+        points = mesh.points; % Nx3 Matrix
         P_base = points' / feature_size; % Transpose to 3xN format for MEX engine
         
         if isfield(mesh, 'fibers')
@@ -82,29 +78,20 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
                 n0 = cross(f0, s0, 2);
             end
             
-            % Apply global rotation offsets (phi/theta)
-            R_offset = [ cos(phi) * cos(theta), sin(phi), -cos(phi) * sin(theta);
-                        -cos(theta) * sin(phi), cos(phi),  sin(phi) * sin(theta);
-                         sin(theta)           , 0       ,  cos(theta) ];
-            
-            f0_rot = (R_offset * f0')';
-            s0_rot = (R_offset * s0')';
-            n0_rot = (R_offset * n0')';
-            
-            % STEP 1: MAIN NOISE FIELD (O_b) - Advected natively by C++
-            O_b = Octave3D(P_base, 4, roughness, perm_table, offsets1, f0_rot', s0_rot', n0_rot', align_y, align_z);
+            % STEP 1: MAIN NOISE FIELD (O_b)
+            O_b = Octave3D(P_base, 4, roughness, perm_table, offsets1, f0', s0', n0', align_y, align_z);
 
-            % STEP 2: FIBRE-SELECTING FIELD (F) - The interstitial cleft generator
+            % STEP 2: FIBRE-SELECTING FIELD (F)
             centroid = mean(points, 1);
             v = points - centroid;
-            y_prime = sum(v .* s0_rot, 2)'; % Transversal axis 1 (1xN)
-            z_prime = sum(v .* n0_rot, 2)'; % Transversal axis 2 (1xN)
+            y_prime = sum(v .* s0, 2)';
+            z_prime = sum(v .* n0, 2)';
             
             n_fibres_similarity = 4; wiggle_feature_length = 4; phasefield_strength = 5;
             P_veins = points' / wiggle_feature_length;
             
-            phasefield1 = Octave3D(P_veins, 4, 0.5, perm_table2, offsets1, f0_rot', s0_rot', n0_rot', 1.0, 1.0);
-            phasefield2 = Octave3D(P_veins, 4, 0.5, perm_table3, offsets2, f0_rot', s0_rot', n0_rot', 1.0, 1.0);
+            phasefield1 = Octave3D(P_veins, 4, 0.5, perm_table2, offsets1, f0', s0', n0', 1.0, 1.0);
+            phasefield2 = Octave3D(P_veins, 4, 0.5, perm_table3, offsets2, f0', s0', n0', 1.0, 1.0);
             
             term_y = cos(2*pi * (y_prime / fibre_sep_y + phasefield_strength * (phasefield1 - 0.5)));
             term_z = cos(2*pi * (z_prime / fibre_sep_z + phasefield_strength * (phasefield2 - 0.5)));
@@ -115,9 +102,10 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
             combined_noise = (1 - fibreness + fibreness * F) .* O_b;
 
         else
-            % =============================================================
             % GLOBAL FALLBACK (For idealized 3D meshes without local fiber data)
-            % =============================================================
+            
+            phi   = params.phi;
+            theta = params.theta;
             R = [ cos(phi) * cos(theta), sin(phi), -cos(phi) * sin(theta);
                  -cos(theta) * sin(phi), cos(phi),  sin(phi) * sin(theta);
                   sin(theta)           , 0       ,  cos(theta) ];
@@ -157,21 +145,16 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
         noise_comps.O_d = O_d;
         noise_comps.G = combined_noise;
 
-    % =====================================================================
     % BRANCH: 2D GENERATION
-    % =====================================================================
     else
-        % Extract 2D Params
         fibre_sep   = params.fibre_sep;
         align       = params.alignment;
-        orientation = params.orientation;
 
-        % Handle Non-Fibrous Case
         if isnan(fibreness)
             fibreness = 0; fibre_sep = 1;
         end
 
-        points = mesh.mm_points(:, 1:2); % Always N x 2
+        points = mesh.points(:, 1:2); % Always N x 2
         
         P_base = points' / feature_size; % Transpose to 2xN format for MEX engine
         
@@ -180,24 +163,19 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
             f0 = mesh.fibers(:, 1:2);
             f0 = f0 ./ max(sqrt(sum(f0.^2, 2)), 1e-8);
             
-            % Apply global orientation angle as a rotational offset
-            R_off = [cos(orientation), -sin(orientation); 
-                     sin(orientation),  cos(orientation)];
-            f0_rot = (R_off * f0')'; 
-            
             % STEP 1: MAIN FIBROSIS NOISE FIELD (O_b)
-            O_b = Octave2D(P_base, 4, roughness, perm_table, offsets1, f0_rot', align);
+            O_b = Octave2D(P_base, 4, roughness, perm_table, offsets1, f0', align);
 
             % STEP 2: FIBRE-SELECTING FIELD (F)
             centroid = mean(points, 1);
             v = points - centroid;
-            t0 = [-f0_rot(:,2), f0_rot(:,1)]; 
+            t0 = [-f0(:,2), f0(:,1)]; 
             y_prime = sum(v .* t0, 2)'; 
             
             n_fibres_similarity = 4; wiggle_feature_length = 4; phasefield_strength = 5;
             P_veins = points' / wiggle_feature_length;
             
-            phasefield = Octave2D(P_veins, 4, 0.5, perm_table2, offsets1, f0_rot', 1.0);
+            phasefield = Octave2D(P_veins, 4, 0.5, perm_table2, offsets1, f0', 1.0);
             
             F = 0.5 + 0.5 * cos(2*pi * (y_prime / fibre_sep + phasefield_strength * (phasefield - 0.5)));
             F = F.^15;
@@ -205,11 +183,10 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
             combined_noise = (1 - fibreness + fibreness * F) .* O_b;
             
         else
-            % =============================================================
             % GLOBAL FALLBACK (For idealized 2D meshes without local fiber data)
-            % =============================================================
-            
+        
             % Simple global rotation based on user-provided orientation
+            orientation = params.orientation;
             R = [ cos(orientation), sin(orientation);
                  -sin(orientation), cos(orientation) ]; 
             R_points = R * points';

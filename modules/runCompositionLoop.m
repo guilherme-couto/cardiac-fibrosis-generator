@@ -34,6 +34,9 @@ function final_result = runCompositionLoop(mesh, geometry, noise_params, target_
     step_result.presence = false(size(accumulated_presence));
     step_result.threshold_map = ones(size(geometry.core_mask)) * 999;
 
+    % Tolerance is tied to the spatial resolution of the fibrotic core.
+    % It represents the acceptable deviation from the target density.
+    % The minimum step is the smallest possible increment in density achievable by adding a single pixel/voxel to the Fibrotic Core.
     min_step = 1.0 / geometry.num_true_core; 
     tolerance = max(0.005, 1.5 * min_step);
     
@@ -45,21 +48,25 @@ function final_result = runCompositionLoop(mesh, geometry, noise_params, target_
     while abs(current_density - target) > tolerance
         iter = iter + 1;
         
+        % 1. Generate Noise 
         seed_iter = noise_params.seed + iter;
         noise_field = computeNoiseField(mesh, noise_params, seed_iter);
         
+        % 2. Apply Threshold 
         if req_density >= 0.1 - tolerance
              eff_thresh_dens = 0.1; 
         else
              eff_thresh_dens = req_density;
         end
-        
         step_result = applyFibrosisThreshold(noise_field, geometry, eff_thresh_dens, bz_cfg);
+        
+        % 3. Update Accumulated Presence and Compute New Density
         temp_presence = accumulated_presence | step_result.presence;
         temp_density = sum(temp_presence(geometry.true_core_indices)) / geometry.num_true_core;
         
         tries = tries + 1;
         
+        % 4. Acceptance Logic
         if temp_density < target + tolerance
             accumulated_presence = temp_presence;
             current_density = temp_density;
@@ -68,19 +75,20 @@ function final_result = runCompositionLoop(mesh, geometry, noise_params, target_
             req_density = abs(current_density - target);
         end
         
+        % 5. Check for Maximum Iterations
         if tries > max_tries
-            fprintf('      [i] Composition loop settled at stable state. Density: %.2f%% (Target: %.2f%%)\n', current_density * 100, target * 100);
+            fprintf('      |-> Composition loop settled at stable state. Current Density: %.2f%% (Target: %.2f%%)\n', current_density * 100, target * 100);
             break; 
         end
         
-        if iter > 200 
-            fprintf('      [i] Maximum composition steps (200) reached. Density: %.2f%% (Target: %.2f%%)\n', current_density * 100, target * 100);
+        if iter > 100 
+            fprintf('      |-> Maximum composition iterations reached. Current Density: %.2f%% (Target: %.2f%%)\n', current_density * 100, target * 100);
             break; 
         end
     end
     
     if abs(current_density - target) <= tolerance
-        fprintf('      [i] Composition convergence reached smoothly. Density: %.2f%%\n', current_density * 100);
+        fprintf('      |-> Composition convergence reached. Density: %.2f%% (Target: %.2f%%)\n', current_density * 100, target * 100);
     end
     
     final_result.presence = accumulated_presence;

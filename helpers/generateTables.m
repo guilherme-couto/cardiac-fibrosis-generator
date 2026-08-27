@@ -18,7 +18,7 @@ function [permute_table, offset_table1, offset_table2] = generateTables(seed, is
     end
 
     rng(seed);
-    N_freqs = 8;
+    N_freqs = 8;  % Number of octaves/frequencies
 
     permute_table = zeros(N_freqs, 256, 'int32');
     for j = 1:N_freqs

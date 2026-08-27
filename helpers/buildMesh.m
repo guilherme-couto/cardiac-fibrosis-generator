@@ -35,7 +35,7 @@ function mesh = buildMesh(domain_config)
         xv = linspace(dx/2, dx*(Nx - 0.5), Nx);
         yv = linspace(dx/2, dx*(Ny - 0.5), Ny);
         [X,Y] = meshgrid(xv,yv);
-        points = [X(:), Y(:), zeros(numel(X), 1)]; % Pad Z with zeros for N x 3 consistency
+        points = [X(:), Y(:)];
         mesh.Nz = 1;
         mesh.is3D = false;
     else
@@ -54,4 +54,7 @@ function mesh = buildMesh(domain_config)
     mesh.Nx = Nx;
     mesh.Ny = Ny;
     mesh.dx = dx;
+
+    fprintf('      |-> Mesh ready with %d points. Dimensions: [%.2f x %.2f x %.2f] cm.\n', ...
+            size(points, 1), Lx, Ly, Lz);
 end

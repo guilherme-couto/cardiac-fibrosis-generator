@@ -5,7 +5,7 @@
 import subprocess
 from pathlib import Path
 
-print("=== Cardiac Fibrosis Framework Example: Python Orchestration ===\n")
+print("Cardiac Fibrosis Framework Example: Python Orchestration\n")
 
 # Helper function to safely format Python variables into Octave syntax
 def fmt(arg):
@@ -16,10 +16,11 @@ def fmt(arg):
     return str(arg)
 
 # Configure paths (Relative to the framework root)
-filepath_2D = '../patient_meshes/200um/outputs_2D_dx0.2/Patient_7/Patient_7_slice_6.alg'
+filepath_2D = '../path/to/your/custom_mesh.alg'  # Replace with your actual .alg file path
 
 # --- SCENARIO 1: Analytical Grid ---
 scn1 = {
+    'id': 1,
     'type': 'interstitial',
     'dim_mode': '2D',
     'shape': 'ellipse',
@@ -32,17 +33,18 @@ scn1 = {
 
 # --- SCENARIO 2: Custom Patient Mesh ---
 scn2 = {
+    'id': 2,
     'type': 'diffuse',
     'dim_mode': 'CUSTOM',
     'shape': 'custom',
-    'angle': 45,
+    'angle': -0,
     'density': 0.40,
     'domain': filepath_2D,       # String path
     'core': [],
     'desc': 'Patient (2D Slice) - Diffuse'
 }
 
-test_scenarios = [scn1]
+test_scenarios = [scn1, scn2]
 seed = 2026
 save_mesh = True
 save_figure = True
@@ -54,12 +56,10 @@ root_dir = Path(__file__).resolve().parent.parent
 for i, s in enumerate(test_scenarios, 1):
     # Adjust output name and figure saving based on mode
     if s['dim_mode'] == 'CUSTOM':
-        fname = f"output_custom_scenario_{i}"
-        fig_flag = False
+        fname = f"output_custom_scn{s['id']}"
     else:
-        fname = f"output_ideal_scenario_{i}"
-        fig_flag = save_figure
-        
+        fname = f"output_ideal_scn{s['id']}"
+                
     print(f">>> Running Scenario {i}: {s['desc']}")
     
     # Define output path
@@ -69,7 +69,7 @@ for i, s in enumerate(test_scenarios, 1):
     octave_cmd = (
         f"run_fibrosis_generator({fmt(s['type'])}, {fmt(s['density'])}, {fmt(seed)}, "
         f"{fmt(s['angle'])}, {fmt(s['dim_mode'])}, {fmt(s['domain'])}, {fmt(s['shape'])}, "
-        f"{fmt(s['core'])}, {fmt(str(output_path))}, {fmt(save_mesh)}, {fmt(fig_flag)});"
+        f"{fmt(s['core'])}, {fmt(str(output_path))}, {fmt(save_mesh)}, {fmt(save_figure)});"
     )
     
     # Mount the subprocess command
@@ -78,6 +78,5 @@ for i, s in enumerate(test_scenarios, 1):
     try:
         # Execute Octave inside the framework's root directory
         subprocess.run(cmd, check=True, cwd=str(root_dir))
-        print("  Success.\n")
     except subprocess.CalledProcessError as e:
-        print("  Error executing Octave via Python.\n")
+        print("[x] Error executing Octave via Python.\n")

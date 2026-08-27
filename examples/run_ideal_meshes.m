@@ -2,9 +2,10 @@
 % Demonstrates the creation of standard geometrical domains and morphological rendering (GIFs and PNGs).
 
 clc;
-fprintf("=== Cardiac Fibrosis Framework Example: Analytical Ideal Grids ===\n\n");
+fprintf("Cardiac Fibrosis Framework Example: Analytical Ideal Grids\n\n");
 
 % --- SCENARIO 1: 2D Interstitial Ellipse ---
+scn1.id = 1;
 scn1.type = 'interstitial'; 
 scn1.dim_mode = '2D'; 
 scn1.shape = 'ellipse'; 
@@ -15,6 +16,7 @@ scn1.core   = [1.5, 3.0];        % [width, height]
 scn1.desc   = '2D Elliptical Domain - Interstitial';
 
 % --- SCENARIO 2: 3D Compact Box ---
+scn2.id = 2;
 scn2.type = 'compact';
 scn2.dim_mode = '3D';
 scn2.shape = 'box';
@@ -27,11 +29,11 @@ scn2.desc   = '3D Structured Box (Compact)';
 test_scenarios = {scn1, scn2};
 seed = 2026;
 save_mesh = true;
-save_figure = true; % This triggers the Python visualizer
+save_figure = true;
 
 for i = 1:length(test_scenarios)
     s = test_scenarios{i};
-    fname = sprintf('output_ideal_scenario_%d', i);
+    fname = sprintf('output_ideal_scn%d', s.id);
     
     fprintf('>>> Running Scenario %d: %s\n', i, s.desc);
     cd('..');

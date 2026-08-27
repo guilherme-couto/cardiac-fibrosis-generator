@@ -28,7 +28,7 @@ function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, an
     try 
         pkg load image; 
     catch 
-        error('  [x] Octave "image" package not found. Please run: pkg install -forge image'); 
+        error('[x] Octave "image" package not found. Please run: pkg install -forge image'); 
     end
     more off; 
 

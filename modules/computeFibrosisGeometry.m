@@ -36,7 +36,6 @@ function geometry = computeFibrosisGeometry(mesh, geom_cfg, bz_cfg)
         geometry.total_layers = 0;
         geometry.is3D = mesh.is3D;
         
-        fprintf('  -> Custom Geometry: Identified %d fibrotic core elements.\n', geometry.num_core_points);
         return;
     end
 
@@ -53,7 +52,7 @@ function geometry = computeFibrosisGeometry(mesh, geom_cfg, bz_cfg)
         core_mask = false(Ny, Nx);
     end
 
-    % Dimensions of the fibrotic core in PIXELS for embedded shapes
+    % Dimensions of the fibrotic core in pixels for embedded shapes
     if isfield(geom_cfg, 'fc_width'), w_px = geom_cfg.fc_width / mesh.dx; end
     if isfield(geom_cfg, 'fc_height'), h_px = geom_cfg.fc_height / mesh.dx; end
     if isfield(geom_cfg, 'fc_center_x'), cx_px = geom_cfg.fc_center_x / mesh.dx; end
@@ -128,9 +127,6 @@ function geometry = computeFibrosisGeometry(mesh, geom_cfg, bz_cfg)
                       ((Y - cy_px).^2) / b^2 + ...
                       ((Z - cz_px).^2) / c^2;
             core_mask = (dist_sq <= 1);
-            
-        case 'stain'
-            error('Stain shape logic needs migration.');
             
         otherwise
             error('Unknown shape: %s', geom_cfg.shape);
