@@ -2,7 +2,7 @@
 
 A computational framework for generating synthetic histology-inspired fibrosis patterns (e.g., Compact, Diffuse, Interstitial, Patchy, Uniform) in cardiac models. 
 
-This tool supports both **analytical ideal grids** and **patient-specific geometries**.
+This tool supports both **analytical ideal grids** and **patient-specific/custom geometries**.
 
 ---
 
@@ -52,7 +52,7 @@ Collagen elements that fall into the anatomical Gray Zone (in custom meshes) or 
 
 ## Custom Mesh Requirements (.ALG)
 
-When using the `CUSTOM` dimension mode, your patient-specific meshes must follow some formatting rules so the framework can correctly extract spatial coordinates, biological tensors, and anatomy.
+When using the `CUSTOM` dimension mode, your meshes must follow some formatting rules so the framework can correctly extract spatial coordinates, biological tensors, and anatomy.
 
 **Tissue Tagging Convention (Both Formats):**
 * `0` = Healthy Tissue

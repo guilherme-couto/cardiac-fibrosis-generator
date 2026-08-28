@@ -159,7 +159,7 @@ function [combined_noise, noise_comps] = computeNoiseField(mesh, params, seed)
         P_base = points' / feature_size; % Transpose to 2xN format for MEX engine
         
         if isfield(mesh, 'fibers')
-            % Extract and normalize patient fibers
+            % Extract and normalize mesh fibers
             f0 = mesh.fibers(:, 1:2);
             f0 = f0 ./ max(sqrt(sum(f0.^2, 2)), 1e-8);
             

@@ -1,5 +1,5 @@
 function mesh = readCustomMesh(filename)
-% READCUSTOMMESH Parses and loads large-scale unstructured patient meshes.
+% READCUSTOMMESH Parses and loads large-scale custom meshes.
 %
 % INPUTS:
 %   filename - String containing the relative or absolute path to the mesh file.

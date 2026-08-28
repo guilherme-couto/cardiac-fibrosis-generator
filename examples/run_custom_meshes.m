@@ -2,17 +2,18 @@
 % Demonstrates how to inject procedural fibrosis into custom anatomical models.
 
 clc;
-fprintf("Cardiac Fibrosis Framework Example: Custom Patient Meshes\n\n");
+fprintf("Cardiac Fibrosis Framework Example: Custom Meshes\n\n");
 
-% Configure these paths to point to your local patient datasets
-filepath_2D = '/path/to/your/2D_slice.alg';
+% Configure these paths to point to your local files
+filepath_2D = '/home/guilherme-couto/perlin-fibrosis-generator/P7_slice_6_laplace.alg';
+filepath_3D = '/home/guilherme-couto/perlin-fibrosis-generator/patient_meshes/200um/outputs_3D_dx0.2/Patient_7/Patient_7.alg';
 
 % --- SCENARIO 1: 2D Custom Mesh ---
 scn1.id = 1;
 scn1.type = 'diffuse'; 
 scn1.dim_mode = 'CUSTOM'; 
-scn1.shape = 'custom'; 
-scn1.angle = -0; % Will be ignored       
+scn1.shape = []; 
+scn1.angle = [];       
 scn1.density = 0.40;   
 scn1.domain = filepath_2D; 
 scn1.core   = [];      
@@ -22,8 +23,8 @@ scn1.desc   = 'Patient (2D Slice) - Diffuse';
 scn2.id = 2;
 scn2.type = 'patchy'; 
 scn2.dim_mode = 'CUSTOM'; 
-scn2.shape = 'custom';   
-scn2.angle = [0, 0]; % Will be ignored  
+scn2.shape = [];   
+scn2.angle = []; % Will be ignored  
 scn2.density = 0.30;   
 scn2.domain = filepath_3D; 
 scn2.core   = [];      
@@ -37,7 +38,8 @@ save_figure = true;
 % Execution Loop
 for i = 1:length(test_scenarios)
     s = test_scenarios{i};
-    fname = sprintf('output_custom_scn%d', s.id);
+
+    fname = sprintf('id%d_%s_%s_%d', s.id, s.dim_mode, s.type, seed);
     
     fprintf('>>> Running Scenario %d: %s\n', i, s.desc);
     % Navigate back to root to call the generator

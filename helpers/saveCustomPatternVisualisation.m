@@ -1,16 +1,14 @@
 function saveCustomPatternVisualisation(mesh, output_name, run_cfg)
 % SAVECUSTOMPATTERNVISUALISATION Delegates 2D custom mesh rendering to Python.
 %
-% Triggered when save_figure = true for patient-specific topologies.
-% Currently supports 2D .alg and .vtu meshes via scatter plotting.
-%
 % INPUTS:
 %   mesh        - Struct containing framework dimensions (is3D flag).
 %   output_name - String containing the full path to the generated output mesh.
 %   run_cfg     - Struct providing fibrosis types, target densities, and seeds.
+%
 
     if mesh.is3D
-        fprintf('      |-> [i] Auto-plot is skipped for 3D custom meshes (Use ParaView/alg_to_vtu.py instead).\n');
+        fprintf('      |-> [i] Auto-plot is skipped for 3D custom meshes (Use utils/alg_to_vtu.py instead).\n');
         return;
     end
 
@@ -18,7 +16,7 @@ function saveCustomPatternVisualisation(mesh, output_name, run_cfg)
     if strcmpi(mesh.type, 'alg')
         final_mesh_path = [output_name, '.alg'];
     else
-        final_mesh_path = [output_name, '.vtu'];
+        error('      |-> [x] Unsupported mesh type for visualization: %s', mesh.type);
     end
 
     fibrosis_type = run_cfg.fibrosis_type;

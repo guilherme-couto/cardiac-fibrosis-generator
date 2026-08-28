@@ -3,7 +3,7 @@ function geometry = computeFibrosisGeometry(mesh, geom_cfg, bz_cfg)
 %
 % Creates logical masking arrays that dictate where the fibrosis core and 
 % associated border zone layers are located. Supports analytical 2D/3D shapes 
-% embedded in structured grids, and automatically maps unstructured patient tags.
+% embedded in structured grids, and automatically maps tissue tags.
 %
 % INPUTS:
 %   mesh     - Struct containing point cloud data (.points, .tags, dimensions).
@@ -18,10 +18,10 @@ function geometry = computeFibrosisGeometry(mesh, geom_cfg, bz_cfg)
 %       .bz_map          - Array classifying elements into discrete spatial layers.
 %       .total_layers    - Maximum layer depth computed by the distance transform.
 
-    % BRANCH 1: CUSTOM MESH (PATIENT GEOMETRY)
+    % BRANCH 1: CUSTOM MESH
     if isfield(mesh, 'tags')
-        % In custom mode, geometry is dictated by the patient's mesh tags, not by analytical shapes.
-        % User rule: Tags 1 and 2 are considered Fibrotic Core. 0 is Healthy.
+        % In custom mode, geometry is dictated by the tissue's mesh tags, not by analytical shapes.
+        % User rule: Tags 1 (Fibrotic Core) and 2 (Gray Zone) are considered part of fibrotic regions. 0 is Healthy.
         core_mask = (mesh.tags == 1 | mesh.tags == 2);
         
         geometry.core_mask = core_mask;       % N x 1 Logical Vector
@@ -140,7 +140,7 @@ function geometry = computeFibrosisGeometry(mesh, geom_cfg, bz_cfg)
         % So we compute distance on the INVERSE of the core.
         % 'chessboard' = 8-connectivity.
         % 'euclidean' = smooth circles.
-        dist_map = bwdist(core_mask, bz_cfg.metric); 
+        dist_map = bwdist(core_mask, 'euclidean'); 
         
         % Convert distance to integer layers (discretize continuous distances)
         % Distance 0 = Inside Core

@@ -5,7 +5,7 @@ clc;
 fprintf("Cardiac Fibrosis Framework Example: Analytical Ideal Grids\n\n");
 
 % --- SCENARIO 1: 2D Interstitial Ellipse ---
-scn1.id = 1;
+scn1.id = 3;
 scn1.type = 'interstitial'; 
 scn1.dim_mode = '2D'; 
 scn1.shape = 'ellipse'; 
@@ -16,7 +16,7 @@ scn1.core   = [1.5, 3.0];        % [width, height]
 scn1.desc   = '2D Elliptical Domain - Interstitial';
 
 % --- SCENARIO 2: 3D Compact Box ---
-scn2.id = 2;
+scn2.id = 4;
 scn2.type = 'compact';
 scn2.dim_mode = '3D';
 scn2.shape = 'box';
@@ -33,7 +33,8 @@ save_figure = true;
 
 for i = 1:length(test_scenarios)
     s = test_scenarios{i};
-    fname = sprintf('output_ideal_scn%d', s.id);
+    
+    fname = sprintf('id%d_%s_%s_%d', s.id, s.dim_mode, s.type, seed);
     
     fprintf('>>> Running Scenario %d: %s\n', i, s.desc);
     cd('..');

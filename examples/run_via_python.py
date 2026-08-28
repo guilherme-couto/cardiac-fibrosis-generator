@@ -20,7 +20,7 @@ filepath_2D = '../path/to/your/custom_mesh.alg'  # Replace with your actual .alg
 
 # --- SCENARIO 1: Analytical Grid ---
 scn1 = {
-    'id': 1,
+    'id': 5,
     'type': 'interstitial',
     'dim_mode': '2D',
     'shape': 'ellipse',
@@ -33,11 +33,11 @@ scn1 = {
 
 # --- SCENARIO 2: Custom Patient Mesh ---
 scn2 = {
-    'id': 2,
+    'id': 6,
     'type': 'diffuse',
     'dim_mode': 'CUSTOM',
-    'shape': 'custom',
-    'angle': -0,
+    'shape': [],
+    'angle': [],
     'density': 0.40,
     'domain': filepath_2D,       # String path
     'core': [],
@@ -54,11 +54,8 @@ root_dir = Path(__file__).resolve().parent.parent
 
 # --- EXECUTION LOOP ---
 for i, s in enumerate(test_scenarios, 1):
-    # Adjust output name and figure saving based on mode
-    if s['dim_mode'] == 'CUSTOM':
-        fname = f"output_custom_scn{s['id']}"
-    else:
-        fname = f"output_ideal_scn{s['id']}"
+    
+    fname = f"id{s['id']}_{s['dim_mode']}_{s['type']}_{seed}"
                 
     print(f">>> Running Scenario {i}: {s['desc']}")
     

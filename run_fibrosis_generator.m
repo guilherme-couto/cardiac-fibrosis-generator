@@ -1,4 +1,4 @@
-function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, angle_deg_or_vec, dimension_mode, domain_dims, shape, core_dims, output_filename, save_mesh, save_figure, homog_factor)
+function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, angle_deg_or_vec, dimension_mode, domain_dims_or_path, shape, core_dims, output_filename, save_mesh, save_figure)
 % RUN_FIBROSIS_GENERATOR Entry point for the fibrosis generation framework.
 %
 % This function acts as a wrapper to sanitize user inputs from scripts or 
@@ -8,17 +8,17 @@ function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, an
 %   The 'image' package must be installed in Octave (pkg install -forge image).
 %
 % INPUTS:
-%   fibrosis_type    : String ('compact', 'interstitial', 'diffuse', 'patchy', 'uniform')
-%   density          : Float [0, 1] Target volumetric density.
-%   seed             : Integer RNG seed for exact reproducibility.
-%   angle_deg_or_vec : Float (2D orientation) or Vector [Phi, Theta] for 3D fiber angles.
-%   dimension_mode   : String ('2D', '3D', 'CUSTOM').
-%   domain_dims      : Array [dx, Lx, Ly, Lz] in cm. For CUSTOM, pass the mesh file path string.
-%   shape            : String ('full', 'ellipse', 'rectangle', 'box', 'ellipsoid', 'custom').
-%   core_dims        : Array [width, height, depth] in cm. Ignored if shape is 'full'.
-%   output_filename  : String base name for the output files (no extensions).
-%   save_mesh        : Boolean flag to write the physical arrays to disk.
-%   save_figure      : Boolean flag to render PNG/GIF visualizations.
+%   fibrosis_type       : String ('compact', 'interstitial', 'diffuse', 'patchy', 'uniform')
+%   density             : Float [0, 1] Target volumetric density.
+%   seed                : Integer RNG seed for exact reproducibility.
+%   angle_deg_or_vec    : Float (2D orientation) or Vector [Phi, Theta] for 3D fiber angles. Not needed for CUSTOM meshes.
+%   dimension_mode      : String ('2D', '3D', 'CUSTOM').
+%   domain_dims_or_path : Array [dx, Lx, Ly, Lz] in cm. For CUSTOM, pass the mesh file path string.
+%   shape               : String ('full', 'ellipse', 'rectangle', 'box', 'ellipsoid'). Not needed for CUSTOM meshes.
+%   core_dims           : Array [width, height, depth] in cm. Ignored if shape is 'full'.
+%   output_filename     : String base name for the output files (no extensions).
+%   save_mesh           : Boolean flag to write the physical arrays to disk.
+%   save_figure         : Boolean flag to render PNG/GIF visualizations.
 
     %% 0. FRAMEWORK SETUP
     addpath(pwd);
@@ -33,11 +33,17 @@ function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, an
     more off; 
 
     %% 1. INPUT SANITIZATION
-    if ischar(density) || isstring(density), density = str2double(density); end
-    if ischar(seed) || isstring(seed), seed = str2double(seed); end
-    
-    angle_deg_or_vec = parseVectorInput(angle_deg_or_vec);
-    core_dims        = parseVectorInput(core_dims);
+    if isempty(fibrosis_type) || ~ischar(fibrosis_type), error('[x] fibrosis_type must be a non-empty string.'); end
+    if isempty(density) || ~isnumeric(density) || density < 0 || density > 1, error('[x] density must be a numeric value in [0, 1].'); end
+    if isempty(seed) || ~isnumeric(seed) || seed < 0, error('[x] seed must be a non-negative integer.'); end
+    if isempty(angle_deg_or_vec) && ~strcmpi(upper(dimension_mode), 'CUSTOM'), error('[x] angle_deg_or_vec must be provided for 2D/3D meshes.'); end
+    if isempty(dimension_mode) || ~ischar(dimension_mode), error('[x] dimension_mode must be a non-empty string.'); end
+    if isempty(domain_dims_or_path), error('[x] domain_dims_or_path must be provided.'); end
+    if (isempty(shape) || ~ischar(shape)) && ~strcmpi(upper(dimension_mode), 'CUSTOM'), error('[x] shape must be provided for 2D/3D meshes and should be a string.'); end
+    if isempty(core_dims) && ~strcmpi(shape, 'full') && ~strcmpi(upper(dimension_mode), 'CUSTOM'), error('[x] core_dims must be provided for non-full shapes.'); end
+    if isempty(output_filename) || ~ischar(output_filename), error('[x] output_filename must be a non-empty string.'); end
+    if isempty(save_mesh) || ~islogical(save_mesh), error('[x] save_mesh must be a boolean flag.'); end
+    if isempty(save_figure) || ~islogical(save_figure), error('[x] save_figure must be a boolean flag.'); end
 
     dimension_mode = upper(char(dimension_mode)); 
 
@@ -74,20 +80,31 @@ function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, an
     domain_config.dimension_mode = dimension_mode; 
     
     if strcmp(dimension_mode, 'CUSTOM')
-        domain_config.mesh_file = char(domain_dims);
+        angle_deg_or_vec = [];
+        core_dims = [];
+        shape = [];
+        if ~ischar(domain_dims_or_path)
+            error('[x] For CUSTOM meshes, domain_dims_or_path must be a string path to the mesh file.');
+        end
+        if ~isfile(domain_dims_or_path)
+            error('[x] The specified custom mesh file does not exist: %s', domain_dims_or_path);
+        end
+        domain_config.mesh_file = domain_dims_or_path;
         domain_config.dx = 1; domain_config.Lx = 1; domain_config.Ly = 1; domain_config.Lz = 1;
         is3D = false; 
     else
-        domain_dims = parseVectorInput(domain_dims);
-        if length(domain_dims) < 3
-            error('  [x] domain_dims requires at least 3 elements: [dx, Lx, Ly]');
+        angle_deg_or_vec = parseVectorInput(angle_deg_or_vec);
+        core_dims = parseVectorInput(core_dims);
+        domain_dims_or_path = parseVectorInput(domain_dims_or_path);
+        if length(domain_dims_or_path) < 3
+            error('[x] domain_dims_or_path requires at least 3 elements: [dx, Lx, Ly]');
         end
-        domain_config.dx = domain_dims(1);
-        domain_config.Lx = domain_dims(2);
-        domain_config.Ly = domain_dims(3);
+        domain_config.dx = domain_dims_or_path(1);
+        domain_config.Lx = domain_dims_or_path(2);
+        domain_config.Ly = domain_dims_or_path(3);
         
-        if length(domain_dims) == 4
-            domain_config.Lz = domain_dims(4);
+        if length(domain_dims_or_path) == 4
+            domain_config.Lz = domain_dims_or_path(4);
         else
             domain_config.Lz = 0.0;
         end
@@ -106,9 +123,9 @@ function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, an
 
     geom_config.shape = shape;
 
-    if ~strcmpi(shape, 'full') && ~strcmpi(shape, 'custom')
+    if ~strcmpi(shape, 'full') && ~strcmpi(dimension_mode, 'CUSTOM')
         if length(core_dims) < 2
-            error('  [x] core_dims must define at least [width, height]');
+            error('[x] core_dims must define at least [width, height]');
         end
 
         geom_config.fc_width  = core_dims(1); 
@@ -118,7 +135,7 @@ function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, an
         end
 
         if geom_config.fc_width > domain_config.Lx || geom_config.fc_height > domain_config.Ly
-            error('  [x] Fibrotic core dimensions exceed analytical domain limits.');
+            error('[x] Fibrotic core dimensions exceed analytical domain limits.');
         end
 
         geom_config.fc_center_x = domain_config.Lx / 2;
@@ -132,24 +149,22 @@ function [output_data] = run_fibrosis_generator(fibrosis_type, density, seed, an
         end
     end
     
-    if strcmpi(shape, 'full') || strcmpi(shape, 'custom')
+    if strcmpi(shape, 'full') || strcmpi(dimension_mode, 'CUSTOM')
         bz_config.active = false;
         bz_config.max_layers = 0;
     else
         bz_config.active = true;
-        bz_config.threshold_rate = 1.0; % Control the decay rate
-        bz_config.metric = 'euclidean'; % It can be 'euclidean' or 'chessboard' 
 
+        proportional_bz_thickness = 0.1; % 10% of the smallest core dimension
         if is3D
-            bz_config.bz_thickness = 0.1 * min([geom_config.fc_width, geom_config.fc_height, geom_config.fc_depth]);
+            bz_thickness = proportional_bz_thickness * min([geom_config.fc_width, geom_config.fc_height, geom_config.fc_depth]);
         else
-            bz_config.bz_thickness = 0.1 * min([geom_config.fc_width, geom_config.fc_height]);
+            bz_thickness = proportional_bz_thickness * min([geom_config.fc_width, geom_config.fc_height]);
         end
-        bz_config.max_layers = ceil(bz_config.bz_thickness / domain_config.dx);
+        bz_config.max_layers = ceil(bz_thickness / domain_config.dx);
     end
 
     noise_params = vectorToParams(base_params, angle_deg_or_vec, is3D);
-    noise_params.variable_direction = false; 
     noise_params.seed = seed; 
 
     run_config.fibrosis_type = fibrosis_type;

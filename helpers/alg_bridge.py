@@ -7,17 +7,6 @@ import numpy as np
 import scipy.io as sio
 import pandas as pd
 
-def read_alg(filepath, out_bin):
-    print(f"      |-> Python - Reading legacy ALG file: {filepath}")
-    df = pd.read_csv(filepath, sep=',', engine='c', header=None)
-    data = df.to_numpy(dtype=np.float64)
-    
-    with open(out_bin + '.meta', 'w') as f:
-        f.write(f"{data.shape[0]},{data.shape[1]}")
-        
-    data.tofile(out_bin)
-    print(f"      |-> Python - Binary buffer saved successfully.")
-
 def write_alg(original_alg, mat_with_presence, out_alg):
     print(f"      |-> Python - Loading framework output data")
     mat_data = sio.loadmat(mat_with_presence)
@@ -50,7 +39,7 @@ if __name__ == "__main__":
         
     mode = sys.argv[1]
     if mode == 'read':
-        read_alg(sys.argv[2], sys.argv[3])
+        print("      |-> [x] Mode not implemented: 'read' is not supported in this script.")
     elif mode == 'write':
         write_alg(sys.argv[2], sys.argv[3], sys.argv[4])
     else:

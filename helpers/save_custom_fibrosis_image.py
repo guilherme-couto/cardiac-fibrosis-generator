@@ -1,6 +1,6 @@
 """
 save_custom_fibrosis_image.py
-Matplotlib and PyVista bridge to render 2D Custom Patient Mesh outputs.
+Matplotlib and PyVista bridge to render 2D Custom Mesh outputs.
 Triggered automatically by the Octave framework if save_figure = true.
 """
 
@@ -23,7 +23,7 @@ def plot_custom_mesh(mesh_file, title_str):
         # The framework appends collagen presence as the very last column
         presence = df.iloc[:, -1].values.astype(int)
     else:
-        print(f"      |-> [x] Unsupported extension for auto-plotting: {ext}")
+        print(f"      |-> [x] Unsupported extension for plotting: {ext}")
         return
 
     # --- Plotting Configuration ---
@@ -43,8 +43,8 @@ def plot_custom_mesh(mesh_file, title_str):
     ax.scatter(x, y, c=presence, cmap=cmap, s=5, alpha=0.9, edgecolors='none')
 
     legend_elements = [
-        Patch(facecolor=color_healthy, label='0: Healthy Tissue'),
-        Patch(facecolor=color_fibrosis, label='1: Generated Fibrosis')
+        Patch(facecolor=color_healthy, label='Myocardium'),
+        Patch(facecolor=color_fibrosis, label='Fibrosis')
     ]
     ax.legend(handles=legend_elements, loc='upper right', fontsize=12, frameon=True)
 

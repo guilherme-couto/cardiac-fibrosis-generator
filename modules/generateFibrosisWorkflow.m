@@ -3,7 +3,7 @@ function [output_data] = generateFibrosisWorkflow(domain_cfg, geom_cfg, bz_cfg, 
 %
 % This master function handles mesh construction/loading, geometrical masking, 
 % Perlin noise evaluation, and morphological composition to generate synthetic 
-% histology. It supports both analytical ideal grids and custom patient meshes.
+% histology. It supports both analytical ideal grids and custom meshes.
 %
 % INPUTS:
 %   domain_cfg   - Struct: Spatial dimensions (.Lx, .Ly, .Lz, .dx) or mesh file path.
@@ -26,7 +26,7 @@ function [output_data] = generateFibrosisWorkflow(domain_cfg, geom_cfg, bz_cfg, 
     %% 1. BUILD OR LOAD MESH
     t_build_load_mesh = tic;
     if strcmp(domain_cfg.dimension_mode, 'CUSTOM')
-        fprintf('[+] Loading patient-specific mesh from: %s\n', domain_cfg.mesh_file);
+        fprintf('[+] Loading custom mesh from: %s\n', domain_cfg.mesh_file);
         mesh = readCustomMesh(domain_cfg.mesh_file); 
 
         min_b = min(mesh.points, [], 1);
@@ -177,7 +177,7 @@ function [output_data] = generateFibrosisWorkflow(domain_cfg, geom_cfg, bz_cfg, 
             writeCustomMesh(mesh, final_result.presence, run_cfg.output_name);
             elapsed_export = toc(t_export);
         end
-        if run_cfg.save_fig & !output_data.is3D
+        if run_cfg.save_fig && !output_data.is3D
             t_visualization = tic;
             fprintf('[+] Generating visualizations\n');
             saveCustomPatternVisualisation(mesh, run_cfg.output_name, run_cfg);
@@ -208,7 +208,9 @@ function [output_data] = generateFibrosisWorkflow(domain_cfg, geom_cfg, bz_cfg, 
         fprintf('      |-> Export completed in %.2f seconds.\n', elapsed_export);
     end
     if run_cfg.save_fig
-        fprintf('      |-> Visualization generated in %.2f seconds.\n', elapsed_visualization);
+        if !(strcmpi(domain_cfg.dimension_mode, 'CUSTOM') && output_data.is3D)
+            fprintf('      |-> Visualization generated in %.2f seconds.\n', elapsed_visualization);
+        end
     end
 
     fprintf('\n====  FRAMEWORK COMPLETE  ====\n\n');
