@@ -37,7 +37,7 @@ The framework relies on a hybrid Octave/Python architecture for high-performance
 The framework is operated via the universal entry point: `run_fibrosis_generator.m`.
 To test the installation, run the provided examples from the `examples/` directory:
 
-```bash
+```matlab
 cd examples
 
 % Example 1: Generate analytical grids (2D/3D)
@@ -48,6 +48,41 @@ octave-cli run_custom_meshes.m
 
 % Example 3: Run the generator via Python (2D/3D/custom)
 python3 run_via_python.py
+```
+
+---
+
+## The Entry Point: `run_fibrosis_generator.m`
+
+The framework is driven by a single universal entry point: `run_fibrosis_generator.m`. This function automatically sanitizes inputs and routes the generation logic based on your chosen dimensions and topology. 
+
+To keep the function signature unified across vastly different use cases (analytical vs. custom), it utilizes **empty brackets (`[]`)** to safely ignore irrelevant arguments.
+
+### Input Parameters Cheat Sheet
+
+*   **`fibrosis_type`**: Phenotype string (`'compact'`, `'interstitial'`, `'diffuse'`, `'patchy'`, `'uniform'`).
+*   **`density`**: Target volumetric density fraction `[0, 1]`.
+*   **`seed`**: Integer for RNG reproducibility.
+*   **`angle_deg_or_vec`**: Rotation angle for 2D, or `[Phi, Theta]` for 3D (in **degrees**). **Pass `[]` for CUSTOM meshes.**
+*   **`dimension_mode`**: `'2D'`, `'3D'`, or `'CUSTOM'`.
+*   **`domain_dims_or_path`**: Analytical domain limits `[dx, Lx, Ly, Lz]` (in **cm**) OR the string path to the patient's mesh file.
+*   **`shape`**: Fibrotic core shape (2D/3D: `'full'`, 2D: `'ellipse'`, `'rectangle'`, 3D: `'ellipsoid'`, `'box'`). **Pass `[]` for CUSTOM meshes.**
+*   **`core_dims`**: Fibrotic core dimensions `[width, height, depth]` (in **cm**). **Pass `[]` for CUSTOM meshes or 'full' shape.**
+*   **`output_filename`**: Base string name for exported files (no extension).
+*   **`save_mesh` / `save_figure`**: Boolean flags (`true` / `false`) to control file and image rendering exports.
+
+### Call Examples
+
+**1. Analytical Ideal Grid (Requires Angles and Shapes):**
+```matlab
+% Generates a 3D Patchy with an ellipsoid fibrotic core inside a 1.0x1.0x1.0 cm domain rotated at [0, 45] degrees.
+run_fibrosis_generator('patchy', 0.25, 42, [0, 45], '3D', [0.01, 1.0, 1.0, 1.0], 'ellipsoid', [0.5, 0.5, 0.5], 'output_ideal', true, true);
+```
+
+**2. Custom Patient Mesh (Bypasses Angles and Shapes):**
+```matlab
+% Generates a Diffuse pattern using the patient's native fibers. Unused geometry arguments are explicitly bypassed using [].
+run_fibrosis_generator('diffuse', 0.40, 42, [], 'CUSTOM', 'patient_mesh.alg', [], [], 'output_custom', true, true);
 ```
 
 ---
