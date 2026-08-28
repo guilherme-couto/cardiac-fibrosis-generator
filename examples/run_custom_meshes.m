@@ -5,8 +5,8 @@ clc;
 fprintf("Cardiac Fibrosis Framework Example: Custom Meshes\n\n");
 
 % Configure these paths to point to your local files
-filepath_2D = '/home/guilherme-couto/perlin-fibrosis-generator/P7_slice_6_laplace.alg';
-filepath_3D = '/home/guilherme-couto/perlin-fibrosis-generator/patient_meshes/200um/outputs_3D_dx0.2/Patient_7/Patient_7.alg';
+filepath_2D = '/path/to/your/patient_mesh_2D_slice.alg';  % Replace with your actual 2D slice mesh file path
+filepath_3D = '/path/to/your/patient_mesh_3D.alg';  % Replace with your actual 3D mesh file path
 
 % --- SCENARIO 1: 2D Custom Mesh ---
 scn1.id = 1;
