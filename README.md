@@ -9,14 +9,14 @@ This tool supports both **analytical ideal grids** and **patient-specific/custom
 ## Examples of Generated Fibrosis Patterns
 
 ### Patient-Specific Custom Meshes
-| 3D Custom (Diffuse) | 3D Custom (Compact) | 2D Custom (Patchy) |
-| :---: | :---: | :---: |
-| ![Diffuse 3D](assets/custom_diffuse_3D.png) | ![Compact 3D](assets/custom_compact_3D.png) | ![Patchy 2D](assets/custom_patchy_2D.png) |
+| 3D Custom (Diffuse) | 2D Custom (Patchy) |
+| :---: | :---: |
+| ![Diffuse 3D](assets/custom_diffuse_3D.png) | ![Patchy 2D](assets/custom_patchy_2D.png) |
 
 ### Analytical Ideal Grids
-| 3D Domain (Diffuse) | 2D Domain (Interstitial) |
+| 3D Domain (Compact) | 2D Domain (Interstitial) |
 | :---: | :---: |
-| ![Ideal Diffuse 3D](assets/ideal_diffuse_3D.png) | ![Ideal Interstitial 2D](assets/ideal_interstitial_2D.png) |
+| ![Ideal Compact 3D](assets/ideal_compact_3D.png) | ![Ideal Interstitial 2D](assets/ideal_interstitial_2D.png) |
 
 ---
 
